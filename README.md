@@ -79,4 +79,4 @@ function App() {
 ```
 ## webpack-auto-upload.plugin.js
 
-一个自动上传代码的插件
+一个自动上传代码的插件,通过ssh连接服务器并上传代码
