@@ -69,9 +69,9 @@ function App() {
             if (Ver !== ver) {
                 const params = new URLSearchParams()
                 params.set('ver', ver)
-                location.href = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}?${params.toString()}${
-                    parsedUrl.hash
-                }`
+                parsedUrl.search = params.toString()
+                console.log('new url ', parsedUrl.toString())
+                location.href = parsedUrl.toString()
             }
         })
         .catch(e => console.log(e))
