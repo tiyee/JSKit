@@ -5,7 +5,7 @@
 
 本来是想使用[umi-request](https://github.com/umijs/plugin-request)的，可惜它依赖太多了，直接将整个umijs都包含进来了，于是按照它的api自己实现了一套。
 
-对于umijs的`useRequest`，配合[react-query](https://tanstack.com/query/latest/docs/react/overview)来实现类似`useRequest`的效果
+对于umijs的`useRequest`同样也很复杂，我们可以用这个request配合[react-query](https://tanstack.com/query/latest/docs/react/overview)来实现类似`useRequest`的效果
 ```typecrypt
 import {
   QueryClient,
