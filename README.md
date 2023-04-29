@@ -52,6 +52,8 @@ function Example() {
 
 如果我们访问地址`https://abc.com/#/home`，因为有浏览器缓存，我们改代码后，html不会更新，引入的js还是旧的，这个时候，我们可以请求这个版本号文件，如果跟js的版本号不一致，强制跳转带版本号的页面`https://abc.com/?ver=v2#/home`
 
+当然，我们也可以根据Semver来判断是否需要强制跳转。
+
 ```typescript
 // Version.tsx `export default 'v8'`
 import Ver from './Version'
