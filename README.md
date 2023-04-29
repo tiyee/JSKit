@@ -5,7 +5,7 @@
 
 本来是想使用[umi-request](https://github.com/umijs/plugin-request)的，可惜它依赖太多了，直接将整个umijs都包含进来了，于是按照它的api自己实现了一套。
 
-对于umijs的`useRequest`，配合[react-query](https://tanstack.com/query/latest/docs/react/overview)来实现类似`useRequest`的效果
+对于umijs的`useRequest`同样也很复杂，我们可以用这个request配合[react-query](https://tanstack.com/query/latest/docs/react/overview)来实现类似`useRequest`的效果
 ```typecrypt
 import {
   QueryClient,
@@ -51,6 +51,8 @@ function Example() {
 是一个webpack5 插件，主要用途是生成一个版本json文件。
 
 如果我们访问地址`https://abc.com/#/home`，因为有浏览器缓存，我们改代码后，html不会更新，引入的js还是旧的，这个时候，我们可以请求这个版本号文件，如果跟js的版本号不一致，强制跳转带版本号的页面`https://abc.com/?ver=v2#/home`
+
+当然，我们也可以根据Semver来判断是否需要强制跳转。
 
 ```typescript
 // Version.tsx `export default 'v8'`
