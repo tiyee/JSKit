@@ -46,6 +46,29 @@ function Example() {
 }
 ```
 
+## access
+
+umi[权限](https://umijs.org/docs/max/access)的一个实现，`Access`组件的props跟umi完全一致，`useAccess`的用法基本一致。不提同的是`useAccess`方法的参数类型有所不同
+
+```typescript
+import {Access, useAccess} from 'access'
+function App() {
+  const hasLogin = false // fetch from remote
+  const access = useAccess({hasLogin})
+  if (access.canReadFoo) {
+      return <span>有canReadFoo权限</span>
+  }
+  if (access.canDeleteFoo('abcc')) {
+      return <span>canDeleteFoo</span>
+  }
+  return <Access fallback={'你没有登陆'} accessible={hasLogin}>
+            <span>你已经登录</span>
+        </Access>
+}
+
+```
+
+
 ## webpack-ver-plugin.js
 
 是一个webpack5 插件，主要用途是生成一个版本json文件。
