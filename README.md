@@ -6,7 +6,8 @@
 本来是想使用[umi-request](https://github.com/umijs/plugin-request)的，可惜它依赖太多了，直接将整个umijs都包含进来了，于是按照它的api自己实现了一套。
 
 对于umijs的`useRequest`同样也很复杂，我们可以用这个request配合[react-query](https://tanstack.com/query/latest/docs/react/overview)来实现类似`useRequest`的效果
-```typecrypt
+```typescript
+
 import {
   QueryClient,
   QueryClientProvider,
@@ -87,6 +88,11 @@ function App() {
 }
 
 ```
+`useAuth`可以导出各种状态显示和设置函数，用作子模块的登陆状态验证
+
+`useLogin`和`useLogout`用作具体的登陆和退出操作。它们的第一个参数是一个promise函数，返回的的是用户信息的`Promise<IUser>`，注意，退出也是返回这个，只是可以设置零值对象。错误信息可以通过导出的`error`获取。
+
+
 一个完整的demo
 
 ```typescript
