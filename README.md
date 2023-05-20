@@ -68,6 +68,64 @@ function App() {
 
 ```
 
+## auth
+
+`auth`是登陆相关的模块，有基础的登陆验证设置模块`useAuth`和执行登陆、退出逻辑的`useLogin`和`useLogout`
+
+不同的项目用户信息不一样，更改`IUser`和`initState`内容即可。
+
+要使用`auth`需要上层加入`AuthProvider`。比如
+
+```typescript
+
+function App() {
+    return (
+        <AuthProvider>
+            <App />
+        </AuthProvider>
+    )
+}
+
+```
+一个完整的demo
+
+```typescript
+
+import * as React from 'react'
+import {useAuth, AuthProvider, useLogin, IUser} from 'utils/auth'
+const Auth = () => {
+    const fn = new Promise<IUser>(resolve => {
+        setTimeout(() => {
+            resolve({uid: 1, nickname: '123'})
+        }, 10000)
+    })
+
+    const {setLogout, setLogin, isLogin} = useAuth()
+    const {loadding, user} = useLogin(fn)
+
+    return (
+        <center>
+            <p>{isLogin ? 'login' : 'not login'}</p>
+            <p>{loadding ? 'loadding' : user.nickname}</p>
+            <button
+                onClick={() => {
+                    isLogin ? setLogout() : setLogin()
+                }}>
+                {isLogin ? '退出' : '登陆'}
+            </button>
+        </center>
+    )
+}
+function App() {
+    return (
+        <AuthProvider>
+            <Auth />
+        </AuthProvider>
+    )
+}
+
+```
+
 
 ## webpack-ver-plugin.js
 
