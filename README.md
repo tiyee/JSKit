@@ -1,172 +1,84 @@
 # JSKit
-本人日常编写的js库，方便自己使用
 
-## request.js
+本人日常编写的 JS 工具集，方便自己使用。基于 **pnpm workspace + tsup** 的 monorepo，每个子包独立发布到 npm 的 `@tiyee/*` scope。
 
-本来是想使用[umi-request](https://github.com/umijs/plugin-request)的，可惜它依赖太多了，直接将整个umijs都包含进来了，于是按照它的api自己实现了一套。
-
-对于umijs的`useRequest`同样也很复杂，我们可以用这个request配合[react-query](https://tanstack.com/query/latest/docs/react/overview)来实现类似`useRequest`的效果
-```typescript
-
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from '@tanstack/react-query'
-import request from './request'
-
-const queryClient = new QueryClient()
-
-export default function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Example />
-    </QueryClientProvider>
-  )
-}
-
-function Example() {
-  const { isLoading, error, data } = useQuery({
-    queryKey: ['repoData'],
-    queryFn:() => request.get('https://api.github.com/repos/tannerlinsley/react-query').then((resp: Response) => resp.json())
-  })
-
-  if (isLoading) return 'Loading...'
-
-  if (error) return 'An error has occurred: ' + error.message
-
-  return (
-    <div>
-      <h1>{data.name}</h1>
-      <p>{data.description}</p>
-      <strong>👀 {data.subscribers_count}</strong>{' '}
-      <strong>✨ {data.stargazers_count}</strong>{' '}
-      <strong>🍴 {data.forks_count}</strong>
-    </div>
-  )
-}
-```
-
-## access
-
-umi[权限](https://umijs.org/docs/max/access)的一个实现，`Access`组件的props跟umi完全一致，`useAccess`的用法基本一致。不提同的是`useAccess`方法的参数类型有所不同
-
-```typescript
-import {Access, useAccess} from 'access'
-function App() {
-  const hasLogin = false // fetch from remote
-  const access = useAccess({hasLogin})
-  if (access.canReadFoo) {
-      return <span>有canReadFoo权限</span>
-  }
-  if (access.canDeleteFoo('abcc')) {
-      return <span>canDeleteFoo</span>
-  }
-  return <Access fallback={'你没有登陆'} accessible={hasLogin}>
-            <span>你已经登录</span>
-        </Access>
-}
+## 目录结构
 
 ```
-
-## auth
-
-`auth`是登陆相关的模块，有基础的登陆验证设置模块`useAuth`和执行登陆、退出逻辑的`useLogin`和`useLogout`
-
-不同的项目用户信息不一样，更改`IUser`和`initState`内容即可。
-
-要使用`auth`需要上层加入`AuthProvider`。比如
-
-```typescript
-
-function App() {
-    return (
-        <AuthProvider>
-            <App />
-        </AuthProvider>
-    )
-}
-
-```
-`useAuth`可以导出各种状态显示和设置函数，用作子模块的登陆状态验证
-
-`useLogin`和`useLogout`用作具体的登陆和退出操作。它们的第一个参数是一个promise函数，返回的的是用户信息的`Promise<IUser>`，注意，退出也是返回这个，只是可以设置零值对象。错误信息可以通过导出的`error`获取。
-
-
-一个完整的demo
-
-```typescript
-
-import * as React from 'react'
-import {useAuth, AuthProvider, useLogin, IUser} from 'utils/auth'
-const Auth = () => {
-    const fn = new Promise<IUser>(resolve => {
-        setTimeout(() => {
-            resolve({uid: 1, nickname: '123'})
-        }, 10000)
-    })
-
-    const {setLogout, setLogin, isLogin} = useAuth()
-    const {loadding, user} = useLogin(fn)
-
-    return (
-        <center>
-            <p>{isLogin ? 'login' : 'not login'}</p>
-            <p>{loadding ? 'loadding' : user.nickname}</p>
-            <button
-                onClick={() => {
-                    isLogin ? setLogout() : setLogin()
-                }}>
-                {isLogin ? '退出' : '登陆'}
-            </button>
-        </center>
-    )
-}
-function App() {
-    return (
-        <AuthProvider>
-            <Auth />
-        </AuthProvider>
-    )
-}
-
+JSKit/
+├── packages/
+│   ├── auth/                         # @tiyee/auth        React 登录态管理
+│   ├── access/                       # @tiyee/access      React 权限组件
+│   ├── requests/                     # @tiyee/requests    基于 fetch 的 HTTP 请求库
+│   ├── webpack-ver-plugin/           # @tiyee/webpack-ver-plugin           生成版本号 json
+│   └── webpack-auto-upload-plugin/   # @tiyee/webpack-auto-upload-plugin   SSH 自动上传产物
+├── package.json                      # 根 workspace（私有）
+├── pnpm-workspace.yaml
+├── tsconfig.base.json
+└── .changeset/
 ```
 
+## 包一览
 
-## webpack-ver-plugin.js
+| 包 | 说明 |
+|---|---|
+| [`@tiyee/auth`](./packages/auth) | React 登录态管理：`useAuth` / `useLogin` / `useLogout` + `AuthProvider` |
+| [`@tiyee/access`](./packages/access) | 兼容 umi access 用法的权限组件 `Access` + `useAccess` |
+| [`@tiyee/requests`](./packages/requests) | 仿 umi-request 的轻量 fetch 封装 |
+| [`@tiyee/webpack-ver-plugin`](./packages/webpack-ver-plugin) | webpack5 插件：生成版本号 json，配合前端比对实现强制刷新 |
+| [`@tiyee/webpack-auto-upload-plugin`](./packages/webpack-auto-upload-plugin) | webpack5 插件：打包后 SSH 自动上传到服务器 |
 
-是一个webpack5 插件，主要用途是生成一个版本json文件。
+## API 变更说明（相对早期散文件版本）
 
-如果我们访问地址`https://abc.com/#/home`，因为有浏览器缓存，我们改代码后，html不会更新，引入的js还是旧的，这个时候，我们可以请求这个版本号文件，如果跟js的版本号不一致，强制跳转带版本号的页面`https://abc.com/?ver=v2#/home`
+- **`@tiyee/auth`**：`useLogin` / `useLogout` 的首参由 `Promise<IUser>` 改为 `() => Promise<IUser>`（返回 Promise 的函数）。之前传一个已创建的 Promise 会导致每次渲染重建 `useCallback`，现在由 hook 在适当时机调用。
+- **`@tiyee/requests`**：
+  - `timeout` 真正生效（基于 `AbortController`，超时抛 `request timeout after Xms`），默认 `0` 表示不超时。
+  - `responseType` 真正生效：`'json' | 'text' | 'blob' | 'arrayBuffer' | 'formData'` 会自动解析 Response；新增 `'response'` 表示返回原始 Response（**默认值**，保持与旧版 `.then(r => r.json())` 用法兼容）。
+- **`@tiyee/webpack-auto-upload-plugin`**：上传前校验 `remotePath`，空值、根目录、`/root` `/usr` 等危险路径会被拒绝并报错，避免误删服务器关键目录。
 
-当然，我们也可以根据Semver来判断是否需要强制跳转。
+## 安装
 
-```typescript
-// Version.tsx `export default 'v8'`
-import Ver from './Version'
+按需安装对应子包即可，例如：
 
-function App() {
-    const parsedUrl = new URL(window.location.href)
-    request
-        .get('ver.json?ver=' + new Date().getTime().toString())
-        .then((resp: Response) => resp.json())
-        .then(data => {
-            console.log(data, Ver)
-            const {ver} = data
-            if (Ver !== ver) {
-                const params = new URLSearchParams()
-                params.set('ver', ver)
-                parsedUrl.search = params.toString()
-                console.log('new url ', parsedUrl.toString())
-                location.href = parsedUrl.toString()
-            }
-        })
-        .catch(e => console.log(e))
-
-    // other code
-}
-
+```bash
+pnpm add @tiyee/requests
+# 或
+npm install @tiyee/auth
 ```
-## webpack-auto-upload-plugin.js
 
-一个自动上传代码的插件,通过ssh连接服务器并上传代码
+## 开发
+
+```bash
+# 安装依赖
+pnpm install
+
+# 构建全部子包
+pnpm build
+
+# 监听模式开发（全部子包）
+pnpm dev
+
+# 仅构建某个包
+pnpm --filter @tiyee/requests build
+```
+
+## 发版（Changesets）
+
+本项目使用 [Changesets](https://github.com/changesets/changesets) 管理版本与 CHANGELOG。
+
+```bash
+# 1. 记录变更：交互式选择受影响的包，填写变更摘要
+pnpm changeset
+
+# 2. 消费变更、更新各包 version 与 CHANGELOG
+pnpm version
+
+# 3. 构建 + 发布到 npm
+pnpm release
+```
+
+> 首次发布前请确认 `npm whoami` 为 `tiyee`，并已在 npm 创建 `@tiyee` org。
+
+## License
+
+MIT

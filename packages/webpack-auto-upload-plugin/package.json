@@ -1,0 +1,31 @@
+{
+  "name": "@tiyee/webpack-auto-upload-plugin",
+  "version": "0.1.0",
+  "description": "webpack5 插件：打包后通过 SSH 自动上传产物到远程服务器",
+  "license": "MIT",
+  "author": "tiyee",
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup"
+  },
+  "dependencies": {
+    "node-ssh": "^13.1.0"
+  },
+  "keywords": [
+    "webpack",
+    "webpack-plugin",
+    "ssh",
+    "deploy",
+    "upload"
+  ],
+  "devDependencies": {
+    "tsup": "^8.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,6 +1,6 @@
 /** @format */
 /**
- * 
+ *
  *       new AutoUploadPlugin({
             host: '127.0.0.0',
             username: 'root',
@@ -10,9 +10,10 @@
             privateKey:''
 
         })
- * 
+ *
  */
 const {NodeSSH} = require('node-ssh')
+const path = require('path')
 
 class AutoUploadPlugin {
     // 通过构造函数来接收插件参数，并实例化ssh
@@ -25,16 +26,29 @@ class AutoUploadPlugin {
     apply(compiler) {
         // 监听钩子，afterEmit 为打包资源被输出到打包目录后的 hook
         compiler.hooks.afterEmit.tapAsync('AutoUploadPlugin', async (compilation, callback) => {
+            // 校验 remotePath，避免误删服务器根目录或关键路径
+            const serverDir = this.options.remotePath
+            if (!serverDir || typeof serverDir !== 'string') {
+                callback(new Error('[AutoUploadPlugin] remotePath 未配置，已跳过上传'))
+                return
+            }
+            // 解析为绝对路径后再判断，拒绝根目录、家目录、纯盘符等危险路径
+            const resolved = path.resolve(serverDir)
+            const dangerous = ['/', path.parse(resolved).root, '/root', '/home', '/usr', '/var', '/etc', '/bin', '/boot', '/lib', '/opt', '/sbin', '/sys', '/dev']
+            if (dangerous.indexOf(resolved) !== -1) {
+                callback(new Error(`[AutoUploadPlugin] remotePath "${resolved}" 是危险路径，已拒绝执行`))
+                return
+            }
+
             // 上传文件到服务器操作步骤
             // 1.获取输出文件夹
             const outputPath = compilation.outputOptions.path
             // 2.用 node-ssh 库来连接服务器(ssh连接)
             await this.connectServer()
             // 3.删除服务器上文件夹内的内容
-            const serverDir = this.options.remotePath
-            await this.ssh.execCommand(`rm -rf ${serverDir}/*`)
+            await this.ssh.execCommand(`rm -rf ${resolved}/*`)
             // 4.上传文件到服务器(ssh连接)
-            await this.uploadFiles(outputPath, serverDir)
+            await this.uploadFiles(outputPath, resolved)
             // 5.关闭SSH
             this.ssh.dispose()
 

@@ -1,0 +1,26 @@
+{
+  "name": "@tiyee/webpack-ver-plugin",
+  "version": "0.1.0",
+  "description": "webpack5 插件：在打包产物目录生成版本号 json 文件，配合前端版本比对实现强制刷新",
+  "license": "MIT",
+  "author": "tiyee",
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup"
+  },
+  "keywords": [
+    "webpack",
+    "webpack-plugin",
+    "version"
+  ],
+  "devDependencies": {
+    "tsup": "^8.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

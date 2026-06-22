@@ -15,8 +15,9 @@ interface IRequestOptions {
     prefix?: string
     suffix?: string
     requestType?: 'json' | 'form'
-    responseType?: 'json' | 'text' | 'blob' | 'arrayBuffer' | 'formData'
+    responseType?: 'response' | 'json' | 'text' | 'blob' | 'arrayBuffer' | 'formData'
     hooks?: Array<IResponseHook>
+    signal?: AbortSignal
 }
 const checkStatusHook: IResponseHook = (response: Response): Response => {
     if (response.status >= 200 && response.status < 300) {
@@ -30,14 +31,15 @@ const initOptions: IRequestOptions = {
     method: 'get',
     params: {},
     data: '',
-    timeout: 1000,
+    timeout: 0,
     credentials: 'same-origin',
     headers: {},
     mod: 'same-origin',
     prefix: '',
     suffix: '',
     requestType: 'json',
-    responseType: 'json',
+    // 默认返回原始 Response，由调用方自行解析（与历史行为一致）
+    responseType: 'response',
     hooks: [checkStatusHook],
 }
 const buildRequestInit = (options: IRequestOptions): RequestInit => {
@@ -78,8 +80,30 @@ const buildRequestInit = (options: IRequestOptions): RequestInit => {
     myInit.body = body
     myInit.credentials = opts.credentials
     myInit.mode = opts.mod
+    if (opts.signal) {
+        myInit.signal = opts.signal
+    }
 
     return myInit
+}
+// 按 responseType 把 Response 解析成对应数据；'response' 透传原始 Response
+const parseByResponseType = async (response: Response, responseType: NonNullable<IRequestOptions['responseType']>) => {
+    switch (responseType) {
+        case 'response':
+            return response
+        case 'json':
+            return response.json()
+        case 'text':
+            return response.text()
+        case 'blob':
+            return response.blob()
+        case 'arrayBuffer':
+            return response.arrayBuffer()
+        case 'formData':
+            return response.formData()
+        default:
+            return response
+    }
 }
 class RequestInstance {
     private opts: IRequestOptions
@@ -88,7 +112,7 @@ class RequestInstance {
         this.opts = opts || {}
     }
 
-    private async _request(method: HttpMethod, url: string, options?: IRequestOptions): Promise<Response> {
+    private async _request(method: HttpMethod, url: string, options?: IRequestOptions): Promise<any> {
         const opts = {...this.opts, ...options, method}
         const prefix = opts.prefix ?? ''
         const suffix = opts.suffix ?? ''
@@ -107,12 +131,35 @@ class RequestInstance {
         }
 
         const myRequest = new Request(url)
-        let resp = fetch(myRequest, buildRequestInit(opts))
+        // timeout：用 AbortController 实现请求超时；0 表示不超时
+        let controller: AbortController | undefined
+        let timer: ReturnType<typeof setTimeout> | undefined
+        const timeout = opts.timeout ?? 0
+        if (timeout > 0) {
+            controller = new AbortController()
+            opts.signal = controller.signal
+            timer = setTimeout(() => controller!.abort(), timeout)
+        }
+        const requestInit = buildRequestInit(opts)
+
+        let resp: Promise<Response> = fetch(myRequest, requestInit)
         opts.hooks = opts.hooks ?? []
         for (let hook of opts.hooks) {
             resp = resp.then(hook)
         }
-        return resp
+
+        try {
+            const response = await resp
+            return await parseByResponseType(response, opts.responseType ?? 'response')
+        } catch (err) {
+            // 把 abort 转成更明确的超时错误，便于调用方区分
+            if (controller?.signal.aborted) {
+                throw new Error(`request timeout after ${timeout}ms`)
+            }
+            throw err
+        } finally {
+            if (timer) clearTimeout(timer)
+        }
     }
     async get(url: string, options?: IRequestOptions) {
         return this._request('get', url, options)

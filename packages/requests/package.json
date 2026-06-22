@@ -1,0 +1,37 @@
+{
+  "name": "@tiyee/requests",
+  "version": "1.1.0",
+  "description": "基于 fetch 的轻量 HTTP 请求库，仿 umi-request API",
+  "license": "MIT",
+  "author": "tiyee",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup && tsc --emitDeclarationOnly"
+  },
+  "dependencies": {
+    "qs": "^6.12.1"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.9.15",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

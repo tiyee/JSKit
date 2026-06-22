@@ -47,7 +47,7 @@ export const ProviderContext: Context<{
     dispatch: React.Dispatch<IAction>
 }> = createContext({
     state: initState,
-    dispatch: (d: IAction) => {},
+    dispatch: (_d: IAction) => {},
 })
 export const AuthProvider = (props: React.PropsWithChildren) => {
     const [state, dispatch] = useReducer<Reducer<IUser>>(reducer, initState)
@@ -95,11 +95,11 @@ export const useAuth = () => {
     }
 }
 
-export const useLogin = (login: Promise<IUser>, auto: boolean = true) => {
+export const useLogin = (login: () => Promise<IUser>, auto: boolean = true) => {
     const {isLogin, setUser, setLogin, loadding, setLoading, setError, error, user} = useAuth()
     const run = React.useCallback(async () => {
         setLoading(true)
-        login
+        login()
             .then(user => {
                 setUser(user)
                 setLogin()
@@ -116,11 +116,11 @@ export const useLogin = (login: Promise<IUser>, auto: boolean = true) => {
     }, [])
     return {isLogin, loadding, error, user, login}
 }
-export const useLogout = (logout: Promise<IUser>, auto = true) => {
+export const useLogout = (logout: () => Promise<IUser>, auto = true) => {
     const {isLogin, setUser, setLogout, loadding, setLoading, setError, error, user} = useAuth()
     const run = useCallback(async () => {
         setLoading(true)
-        logout
+        logout()
             .then(user => {
                 setUser(user)
                 setLogout()

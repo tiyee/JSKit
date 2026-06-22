@@ -1,1 +1,23 @@
-**/.DS_Store
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+dist
+build
+*.tsbuildinfo
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Changesets 的产物，不进版本库
+.changeset/*.md
+!.changeset/README.md

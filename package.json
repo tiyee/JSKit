@@ -1,0 +1,24 @@
+{
+  "name": "jskit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "个人 JS 工具集 monorepo",
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm -r --filter='./packages/*' run build",
+    "dev": "pnpm -r --parallel --filter='./packages/*' run dev",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.12",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5"
+  },
+  "packageManager": "pnpm@9.1.0",
+  "engines": {
+    "node": ">=16",
+    "pnpm": ">=8"
+  }
+}
